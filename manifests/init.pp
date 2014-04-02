@@ -23,9 +23,9 @@ class redmine (
     owner   => $owner,
   }
 
-  package {"rubygems":
-    name  => ["rubygems", "rake"]
-  }
+  package {"rubygems":}
+
+  package {"rake": }
 
   if defined(Package["git"]) != true {
     package {"git":}
