@@ -3,7 +3,7 @@ class redmine (
   $admin_password       = "admin",
   $database             = "redmine",
   $username             = "redmine",
-  $password             = "redmine",
+  $password             = "",
   $host                 = "localhost",
   $configuration_source = undef,
   $service_to_restart   = undef,
