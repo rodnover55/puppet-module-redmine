@@ -12,17 +12,17 @@ class redmine (
   $host_name            = "localhost",
   $ui_theme             = "",
 
-  $path     = "/var/www/redmine"
+  $install_path     = "/var/www/redmine"
 ) {
-  Exec { path => [ "/bin/", "/sbin/" , "/usr/bin/", "/usr/sbin/" ] }
+  Exec {path => $path}
   $real_path= "/usr/local/lib/redmine" # Needs due to a bug in "file as directory, recurse true"
   $owner    = "www-data"
   $gem_bin  = "$(gem env gemdir)/bin"
 
 
   exec { 'Create redmine directory':
-    command => "mkdir -p '${path}'",
-    unless  => "test -d '${path}'",
+    command => "mkdir -p '${install_path}'",
+    unless  => "test -d '${install_path}'",
   }
 
   package {"rubygems":}
@@ -36,14 +36,14 @@ class redmine (
 
   exec {"Download redmine":
     require => [Package["git"], Exec["Create redmine directory"]],
-    cwd     => $path,
-    onlyif  => "test ! -d $path/app",
+    cwd     => $install_path,
+    onlyif  => "test ! -d $install_path/app",
     command => "git clone git://github.com/redmine/redmine.git .",
   }
 
   exec {"Choosing redmine version":
     require => Exec["Download redmine"],
-    cwd     => $path,
+    cwd     => $install_path,
     onlyif  => "test '$version' != $(git describe --exact-match --all --tags --always HEAD)",
     command => "git checkout $version",
   }
@@ -52,7 +52,7 @@ class redmine (
   file {"Making production log writable to allow execute fetch changesets from hooks":
     require => Exec["Choosing redmine version"],
     ensure  => present,
-    path    => "${path}/log/production.log",
+    path    => "${install_path}/log/production.log",
     owner   => $owner,
     group   => $owner,
     mode    => 0666,
@@ -60,8 +60,8 @@ class redmine (
 
   exec {"Setting redmine owner":
     require => Exec["Choosing redmine version"],
-    cwd     => $path,
-    onlyif  => "test '$owner' != $(stat --format=%U $path/app)",
+    cwd     => $install_path,
+    onlyif  => "test '$owner' != $(stat --format=%U $install_path/app)",
     command => "chown --recursive $owner:$owner .",
   }
 
@@ -70,7 +70,7 @@ class redmine (
     ensure  => present,
     owner   => $owner,
     group   => $owner,
-    path    => "$path/config/database.yml",
+    path    => "$install_path/config/database.yml",
     content => template("redmine/database.yml.erb")
   }
 
@@ -80,7 +80,7 @@ class redmine (
       ensure  => present,
       owner   => $owner,
       group   => $owner,
-      path    => "$path/config/configuration.yml",
+      path    => "$install_path/config/configuration.yml",
       source  => $configuration_source,
       notify  => $service_to_restart
     }
@@ -103,31 +103,31 @@ class redmine (
 
   exec {"Installing needed bundles":
     require   => [Exec["Choosing redmine version"]],
-    creates   => "$path/config/initializers/secret_token.rb",
-    cwd       => $path,
+    creates   => "$install_path/config/initializers/secret_token.rb",
+    cwd       => $install_path,
     command   => "bundle install --without development test postgresql sqlite",
   }
 
   exec {"Initializing redmine":
     require   => [File["Setting up redmine database"], Exec["Installing needed bundles"], Exec["Setting redmine owner"]],
     before    => $service_to_restart,
-    creates   => "$path/config/initializers/secret_token.rb",
+    creates   => "$install_path/config/initializers/secret_token.rb",
     user      => $owner,
-    cwd       => $path,
+    cwd       => $install_path,
     command   => "bundle exec rake generate_secret_token db:migrate RAILS_ENV=production REDMINE_LANG=ru",
   }
 
   exec {"Loading defaults in redmine":
     require   => Exec["Initializing redmine"],
     onlyif    => "test 0 = $(mysql -e 'select count(*) from $database.trackers' | tail -n1)",
-    cwd       => $path,
+    cwd       => $install_path,
     command   => "bundle exec rake redmine:load_default_data RAILS_ENV=production REDMINE_LANG=ru",
   }
 
   file {"Preparing redmine settings":
     require => Exec["Choosing redmine version"],
     ensure  => present,
-    path    => "$path/config/settings.mysql.sql",
+    path    => "$install_path/config/settings.mysql.sql",
     content => template("redmine/settings.mysql.sql.erb")
   }
 
@@ -135,7 +135,7 @@ class redmine (
     require     => [File["Preparing redmine settings"], Exec["Loading defaults in redmine"]],
     subscribe   => File["Preparing redmine settings"],
     refreshonly => true,
-    cwd         => "$path/config",
+    cwd         => "$install_path/config",
     command     => "mysql --default_character_set utf8 $database < settings.mysql.sql",
   }
 
