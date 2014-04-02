@@ -10,9 +10,11 @@ class redmine (
   # Redmine admin settings
   $app_title            = "Redmine",
   $host_name            = "localhost",
-  $ui_theme             = ""
+  $ui_theme             = "",
+
+  $path     = "/var/www/redmine"
 ) {
-  $path     = "/./usr/local/lib/redmine"
+
   $real_path= "/usr/local/lib/redmine" # Needs due to a bug in "file as directory, recurse true"
   $owner    = "www-data"
   $gem_bin  = "$(gem env gemdir)/bin"
