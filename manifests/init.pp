@@ -23,7 +23,8 @@ class redmine (
     path    => $path,
     ensure  => directory,
     owner   => $owner,
-    recurse => true
+    recurse => true,
+    recurselimit => 10
   }
 
   package {"rubygems":}
