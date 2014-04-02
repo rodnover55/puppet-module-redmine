@@ -96,11 +96,11 @@ class redmine (
     provider  => "gem",
   }
 
-  exec {"Making bundle bin visible":
-    require   => Package[$gems],
-    command   => "ln --symbolic $gem_bin/bundle /usr/bin/bundle",
-    creates   => "/usr/bin/bundle",
-  }
+#  exec {"Making bundle bin visible":
+#    require   => Package[$gems],
+#    command   => "ln --symbolic $gem_bin/bundle /usr/bin/bundle",
+#    creates   => "/usr/bin/bundle",
+#  }
 
   exec {"Installing needed bundles":
     require   => [Exec["Making bundle bin visible"], Exec["Choosing redmine version"]],
