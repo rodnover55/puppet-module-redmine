@@ -25,9 +25,9 @@ class redmine (
     unless  => "test -d '${install_path}'",
   }
 
-  package {"rubygems":}
+#  package {"rubygems":}
 
-  package {"rake": }
+#  package {"rake": }
 
   if defined(Package["git"]) != true {
     package {"git":}
@@ -91,7 +91,6 @@ class redmine (
 
   $gems = ["rack", "i18n", "rails", "bundler", "mysql", "rmagick"]
   package {$gems:
-    require   => [Package["rubygems"], Package[$gems_libraries]],
     provider  => "gem",
   }
 
