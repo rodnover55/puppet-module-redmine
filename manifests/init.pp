@@ -14,7 +14,7 @@ class redmine (
 
   $path     = "/var/www/redmine"
 ) {
-
+  Exec { path => [ "/bin/", "/sbin/" , "/usr/bin/", "/usr/sbin/" ] }
   $real_path= "/usr/local/lib/redmine" # Needs due to a bug in "file as directory, recurse true"
   $owner    = "www-data"
   $gem_bin  = "$(gem env gemdir)/bin"
