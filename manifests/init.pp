@@ -19,12 +19,10 @@ class redmine (
   $owner    = "www-data"
   $gem_bin  = "$(gem env gemdir)/bin"
 
-  file {"Create redmine directory":
-    path    => $path,
-    ensure  => directory,
-    owner   => $owner,
-    recurse => true,
-    recurselimit => 10
+
+  exec { 'Create redmine directory':
+    command => "mkdir -p '${path}'",
+    unless  => "test -d '${path}'",
   }
 
   package {"rubygems":}
@@ -37,7 +35,7 @@ class redmine (
 
 
   exec {"Download redmine":
-    require => [Package["git"], File["Create redmine directory"]],
+    require => [Package["git"], Exec["Create redmine directory"]],
     cwd     => $path,
     onlyif  => "test ! -d $path/app",
     command => "git clone git://github.com/redmine/redmine.git .",
