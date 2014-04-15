@@ -12,7 +12,13 @@ class redmine (
   $host_name            = "localhost",
   $ui_theme             = "",
 
-  $install_path     = "/var/www/redmine"
+  $install_path     = "/var/www/redmine",
+  $adapter          = 'mysql2',
+  $smtp             = undef,
+  $smtp_port        = 465,
+  $domain           = undef,
+  $smtp_user        = undef,
+  $smtp_password    = undef
 ) {
   Exec {path => $path}
   $real_path= "/usr/local/lib/redmine" # Needs due to a bug in "file as directory, recurse true"
@@ -123,19 +129,26 @@ class redmine (
     command   => "bundle exec rake redmine:load_default_data RAILS_ENV=production REDMINE_LANG=ru",
   }
 
-  file {"Preparing redmine settings":
+#  file {"Preparing redmine settings":
+#    require => Exec["Choosing redmine version"],
+#    ensure  => present,
+#    path    => "$install_path/config/settings.mysql.sql",
+#    content => template("redmine/settings.mysql.sql.erb")
+#  }
+
+  file {"configure.yml":
     require => Exec["Choosing redmine version"],
     ensure  => present,
-    path    => "$install_path/config/settings.mysql.sql",
-    content => template("redmine/settings.mysql.sql.erb")
+    path    => "$install_path/config/configuration.yml",
+    content => template("redmine/configuration.yml.erb")
   }
 
-  exec {"Applying redmine settings":
-    require     => [File["Preparing redmine settings"], Exec["Loading defaults in redmine"]],
-    subscribe   => File["Preparing redmine settings"],
-    refreshonly => true,
-    cwd         => "$install_path/config",
-    command     => "mysql --default_character_set utf8 $database < settings.mysql.sql",
-  }
+#  exec {"Applying redmine settings":
+#    require     => [File["Preparing redmine settings"], Exec["Loading defaults in redmine"]],
+#    subscribe   => File["Preparing redmine settings"],
+#    refreshonly => true,
+#    cwd         => "$install_path/config",
+#    command     => "mysql --default_character_set utf8 $database < settings.mysql.sql",
+#  }
 
 }
