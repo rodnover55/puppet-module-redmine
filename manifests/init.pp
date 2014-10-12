@@ -31,7 +31,7 @@ class redmine (
     unless  => "test -d '${install_path}'",
   }
 
-#  package {"rubygems":}
+  package {"ruby-dev":}
 
 #  package {"rake": }
 
@@ -98,6 +98,7 @@ class redmine (
   $gems = ["rack", "i18n", "rails", "bundler", "mysql", "rmagick"]
   package {$gems:
     provider  => "gem",
+    require   => [Package["ruby-dev"]]
   }
 
 #  exec {"Making bundle bin visible":
