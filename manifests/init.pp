@@ -107,11 +107,18 @@ class redmine (
 #    creates   => "/usr/bin/bundle",
 #  }
 
-  exec {"Installing needed bundles":
+  exec {"Adding unicorn rails":
     require   => [Exec["Choosing redmine version"]],
+    cwd       => $install_path,
+    onlyif    => "test 0 != $(grep 'gem \"unicorn-rails\"' Gemfile)",
+    command   => "echo 'gem \"unicorn-rails\"' >> Gemfile",
+  }
+
+  exec {"Installing needed bundles":
+    require   => [Exec["Choosing redmine version"], Exec["Adding unicorn rails"]],
     creates   => "$install_path/config/initializers/secret_token.rb",
     cwd       => $install_path,
-    command   => "bundle install --without development test postgresql sqlite",
+    command   => "bundle install --binstubs --without development test postgresql sqlite",
   }
 
   exec {"Initializing redmine":
