@@ -108,9 +108,9 @@ class redmine (
 #  }
 
   exec {"Adding unicorn rails":
-    require   => [Exec["Choosing redmine version"]],
+    before   => [Exec["Installing needed bundles"]],
     cwd       => $install_path,
-    onlyif    => "test 0 != $(grep 'gem \"unicorn-rails\"' Gemfile)",
+    unless    => "grep 'gem \"unicorn-rails\"' Gemfile",
     command   => "echo 'gem \"unicorn-rails\"' >> Gemfile",
   }
 
